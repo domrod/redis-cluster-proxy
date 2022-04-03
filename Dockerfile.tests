@@ -1,0 +1,45 @@
+FROM debian:11
+
+ENV RUBY_VERSION 2.7.2
+ENV BUNDLER_VERSION 1.16.6
+
+ARG BRANCH=master
+ENV REDIS_CLUSTER_PROXY_BRANCH ${BRANCH}
+
+RUN apt update && apt install -y procps curl wget gnupg2 lsb-release ca-certificates 
+
+# Install REDIS
+RUN curl -fsSL https://packages.redis.io/gpg | gpg --dearmor -o /usr/share/keyrings/redis-archive-keyring.gpg
+RUN echo "deb [signed-by=/usr/share/keyrings/redis-archive-keyring.gpg] https://packages.redis.io/deb $(lsb_release -cs) main" | tee /etc/apt/sources.list.d/redis.list
+RUN apt update && apt install -y redis
+
+# Install build essential
+RUN apt install -y build-essential
+
+# clone project
+RUN apt install -y git
+WORKDIR /
+RUN git clone https://github.com/domrod/redis-cluster-proxy.git
+WORKDIR /redis-cluster-proxy
+RUN git checkout ${REDIS_CLUSTER_PROXY_BRANCH}
+
+RUN make
+
+# Install ruby for tests
+RUN curl -sSL https://rvm.io/mpapis.asc | gpg2 --import -
+RUN curl -sSL https://rvm.io/pkuczynski.asc |gpg2 --import -
+RUN curl -sSL https://get.rvm.io | bash -s stable
+RUN /bin/bash -c "source /etc/profile.d/rvm.sh && \
+                  rvm install ${RUBY_VERSION} && \
+                  rvm use ${RUBY_VERSION} --default && \
+                  gem install bundler:${BUNDLER_VERSION}"
+
+ENTRYPOINT ["/bin/bash", "-c", "source /etc/profile.d/rvm.sh && \"$@\"", "-s"]
+
+
+
+
+
+
+
+
