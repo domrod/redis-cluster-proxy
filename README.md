@@ -45,6 +45,8 @@ And, finally, if you want to launch tests, just type:
 
 `% make test`
 
+See also `TESTS.md` for doing tests with Docker, to have redis and ruby in a containerized environment.
+
 **Note:** by default, tests use the `redis-server` that is installed on your system (the one that is found in your `$PATH`). If you need to use another `redis-server`, use the environment variable `REDIS_HOME`, ie:
 
 `% REDIS_HOME=/path/to/my/redis/src make test`
